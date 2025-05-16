@@ -13,12 +13,13 @@
 
   <ItemGroup>
     <Using Include="Hj.ServiceStub" />
-    <Using Include="Hj.ServiceStub.Api" />
+    <Using Include="Hj.ServiceStub.Proxy" />
+    <Using Include="Hj.ServiceStub.Stub" />
   </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="10.8.0.113526">
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="10.9.0.115408">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">

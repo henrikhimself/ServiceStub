@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.Options;
 
-namespace Hj.ServiceStub;
+namespace Hj.ServiceStub.Stub;
 
-internal sealed class AppState(IOptions<AppOptions> appOptions)
+internal sealed class StubApp(IOptions<StubOptions> appOptions)
 {
-  public string JsonBasePath { get; set; } = appOptions.Value.JsonPath ?? Path.Combine(AppContext.BaseDirectory, "Json");
+  public string JsonBasePath { get; set; } = appOptions.Value.JsonPath ?? Path.Combine(AppContext.BaseDirectory, "Stub", "Json");
 
   public string CurrentCollection { get; set; } = "_default";
 

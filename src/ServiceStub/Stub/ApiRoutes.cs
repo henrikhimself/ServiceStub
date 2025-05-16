@@ -1,4 +1,6 @@
-namespace Hj.ServiceStub.Api;
+using Hj.ServiceStub.Stub.Api;
+
+namespace Hj.ServiceStub.Stub;
 
 internal static class ApiRoutes
 {
