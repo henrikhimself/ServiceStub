@@ -1,0 +1,15 @@
+GET https://localhost:7443/stub/status/
+
+###
+POST https://localhost:7443/stub/collection/
+
+{
+  "current": "_default"
+}
+
+###
+POST https://localhost:7443/stub/collection/
+
+{
+  "current": "coll1"
+}

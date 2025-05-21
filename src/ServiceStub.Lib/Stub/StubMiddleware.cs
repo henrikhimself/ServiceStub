@@ -1,11 +1,11 @@
 namespace Hj.ServiceStub.Stub;
 
-internal sealed class InterceptMiddleware(StubApp stubApp)
+internal sealed class StubMiddleware(StubApp stubApp)
 {
   public async Task InvokeAsync(HttpContext context, RequestDelegate next)
   {
     if (context.Response.HasStarted
-      || await HandleUsingMinimalApiAsync(context)
+      || await HandleUsingStubApiAsync(context)
       || await HandleUsingStaticFileAsync(context))
     {
       return;
@@ -14,7 +14,7 @@ internal sealed class InterceptMiddleware(StubApp stubApp)
     await next(context);
   }
 
-  private async Task<bool> HandleUsingMinimalApiAsync(HttpContext context)
+  private async Task<bool> HandleUsingStubApiAsync(HttpContext context)
   {
     var fn = stubApp.GetApiFunc(context);
     if (fn == null)

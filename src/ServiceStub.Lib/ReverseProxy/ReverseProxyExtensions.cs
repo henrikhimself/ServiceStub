@@ -2,11 +2,11 @@ using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.Net.Http.Headers;
 using Yarp.ReverseProxy.Transforms;
 
-namespace Hj.ServiceStub.Proxy;
+namespace Hj.ServiceStub.ReverseProxy;
 
-internal static class ProxyExtensions
+public static class ReverseProxyExtensions
 {
-  public static IServiceCollection ConfigureProxy(this IServiceCollection services, IConfiguration configuration)
+  public static IServiceCollection ConfigureReverseProxy(this IServiceCollection services, IConfiguration configuration)
   {
     services.AddHttpLogging(options =>
     {
@@ -16,7 +16,10 @@ internal static class ProxyExtensions
       options.ResponseBodyLogLimit = int.MaxValue;
     });
 
+    services.AddSingleton<LoggerMiddleware>();
+
     services.AddReverseProxy()
+      .LoadFromMemory(BlackholeConfig.Route, BlackholeConfig.Cluster)
       .LoadFromConfig(configuration.GetSection("ReverseProxy"))
       .AddTransforms(builderContext =>
       {
@@ -29,11 +32,14 @@ internal static class ProxyExtensions
     return services;
   }
 
-  public static WebApplication UseProxy(this WebApplication app)
+  public static WebApplication UseReverseProxy(this WebApplication app)
   {
-    app.MapReverseProxy(proxy =>
+    var loggerMiddleware = app.Services.GetRequiredService<LoggerMiddleware>();
+
+    app.MapReverseProxy(proxyPipeline =>
     {
-      proxy.UseHttpLogging();
+      proxyPipeline.UseHttpLogging();
+      proxyPipeline.Use(async (context, next) => await loggerMiddleware.InvokeAsync(context, next));
     });
 
     return app;

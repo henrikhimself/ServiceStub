@@ -1,8 +1,8 @@
-namespace Hj.ServiceStub.Stub.Api;
+namespace Hj.ServiceStub.Api;
 
-internal static class MyApi
+internal static class HelloFromApi
 {
-  public static async Task GetHelloAsync(HttpContext context, CancellationToken cancellationToken)
+  public static async Task GetAsync(HttpContext context, CancellationToken cancellationToken)
   {
     context.Response.ContentType = "application/json";
     await context.Response.WriteAsync($$"""{ "Hello": "Runtime API {{DateTime.Now}}" }""", cancellationToken);
