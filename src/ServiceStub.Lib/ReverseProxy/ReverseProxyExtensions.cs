@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.Net.Http.Headers;
 using Yarp.ReverseProxy.Transforms;
@@ -8,6 +9,8 @@ public static class ReverseProxyExtensions
 {
   public static IServiceCollection ConfigureReverseProxy(this IServiceCollection services, IConfiguration configuration)
   {
+    services.AddSingleton<ReverseProxyApp>();
+
     services.AddHttpLogging(options =>
     {
       options.CombineLogs = true;
@@ -19,7 +22,7 @@ public static class ReverseProxyExtensions
     services.AddSingleton<LoggerMiddleware>();
 
     services.AddReverseProxy()
-      .LoadFromMemory(BlackholeConfig.Route, BlackholeConfig.Cluster)
+      .LoadFromMemory([], [])
       .LoadFromConfig(configuration.GetSection("ReverseProxy"))
       .AddTransforms(builderContext =>
       {
@@ -42,6 +45,19 @@ public static class ReverseProxyExtensions
       proxyPipeline.Use(async (context, next) => await loggerMiddleware.InvokeAsync(context, next));
     });
 
+    return app;
+  }
+
+  public static WebApplication UseReverseProxyApi(this WebApplication app, [StringSyntax("Route")] string? routePrefix = null)
+  {
+    ReverseProxyApi.MapApi(app, routePrefix);
+    return app;
+  }
+
+  public static WebApplication UseBlackholeCatchAll(this WebApplication app)
+  {
+    var reverseProxyApp = app.Services.GetRequiredService<ReverseProxyApp>();
+    reverseProxyApp.AddBlackholeCatchAll();
     return app;
   }
 }

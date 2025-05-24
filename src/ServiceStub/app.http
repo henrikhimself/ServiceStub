@@ -1,15 +1,54 @@
-GET https://localhost:7443/stub/status/
+GET https://localhost:7443/stub/collection/
 
 ###
 POST https://localhost:7443/stub/collection/
+Content-Type: application/json
 
 {
-  "current": "_default"
+  "name": "_default"
 }
 
 ###
 POST https://localhost:7443/stub/collection/
+Content-Type: application/json
 
 {
-  "current": "coll1"
+  "name": "coll1"
+}
+
+###
+GET https://localhost:7443/proxy/route/
+
+###
+POST https://localhost:7443/proxy/route/
+Content-Type: application/json
+
+{
+  "RouteId": "catfact",
+  "ClusterId": "catfact",
+  "Order": 100,
+  "Match": {
+    "Path": "catfact/{**catch-all}"
+  },
+  "Transforms": [
+    {
+      "PathRemovePrefix": "/catfact"
+    }
+  ]
+}
+
+###
+GET https://localhost:7443/proxy/cluster/
+
+###
+POST https://localhost:7443/proxy/cluster/
+Content-Type: application/json
+
+{
+  "ClusterId": "catfact",
+  "Destinations": {
+    "destination1": {
+      "Address": "https://catfact.ninja/fact"
+    }
+  }
 }

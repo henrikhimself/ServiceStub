@@ -14,24 +14,31 @@ internal static class StubApi
       api = app.MapGroup(routePrefix);
     }
 
-    api.MapGet("status", GetStatus);
-    api.MapPost("collection", PostCollection);
+    api.MapGet("/collection", GetCollection)
+      .WithName("GetCollection")
+      .WithDescription("Get active collection name.");
+    api.MapPost("/collection", PostCollection)
+      .WithName("SetCollection")
+      .WithDescription("Set active collection.");
 
     return app;
   }
 
-  public static IResult GetStatus([FromServices] StubApp stubApp)
-    => TypedResults.Ok($"[READY] Current collection '{stubApp.CurrentCollection}', JSON path '{stubApp.JsonBasePath}'");
+  public static IResult GetCollection([FromServices] StubApp stubApp)
+  {
+    return Results.Json<CollectionDto>(new()
+    {
+      Name = stubApp.CurrentCollection,
+    });
+  }
 
   public static IResult PostCollection([FromServices] StubApp stubApp, [FromBody] CollectionDto collection)
   {
-    var newCurrentCollection = collection.Current;
-    if (string.IsNullOrWhiteSpace(newCurrentCollection))
+    if (string.IsNullOrWhiteSpace(collection.Name))
     {
-      return TypedResults.BadRequest();
+      return Results.BadRequest();
     }
-
-    stubApp.CurrentCollection = newCurrentCollection;
-    return TypedResults.Ok();
+    stubApp.CurrentCollection = collection.Name;
+    return Results.Ok();
   }
 }

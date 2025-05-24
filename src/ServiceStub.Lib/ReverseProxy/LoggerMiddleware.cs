@@ -9,7 +9,7 @@ public class LoggerMiddleware(ILogger<LoggerMiddleware> logger)
     var proxyFeature = context.GetReverseProxyFeature();
     var route = proxyFeature.Route.Config;
 
-    if (string.Equals(BlackholeConfig.BlackholeId, route.RouteId, StringComparison.OrdinalIgnoreCase))
+    if (string.Equals(ReverseProxyConstants.BlackholeId, route.RouteId, StringComparison.OrdinalIgnoreCase))
     {
       logger.LogError("Blackhole: '{Url}'", context.Request.GetDisplayUrl());
       context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
