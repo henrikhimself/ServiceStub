@@ -1,6 +1,6 @@
+using Hj.ServiceStub.ReverseProxy.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using Yarp.ReverseProxy.Configuration;
 
 namespace Hj.ServiceStub.ReverseProxy;
 
@@ -17,33 +17,41 @@ internal static class ReverseProxyApi
     api.MapGet("/route", GetRoute)
       .WithName("GetRoutes")
       .WithDescription("Get list of configured routes.");
-    api.MapPost("/route", PostRoute)
+    api.MapPost("/route", PostRouteAsync)
       .WithName("AddRoute")
-      .WithDescription("Appends a route to the configured list of routes.");
+      .WithDescription("Appends routes to the configuration.");
 
     api.MapGet("/cluster", GetCluster)
       .WithName("GetClusters")
       .WithDescription("Get list of configured clusters.");
-    api.MapPost("/cluster", PostCluster)
+    api.MapPost("/cluster", PostClusterAsync)
       .WithName("AddCluster")
-      .WithDescription("Appends a cluster to the configured list of clusters.");
+      .WithDescription("Appends clusters to the configuration.");
 
     return app;
   }
 
   public static IResult GetRoute([FromServices] ReverseProxyApp reverseProxyApp) => Results.Json(reverseProxyApp.GetRouteConfigs());
 
-  public static async ValueTask<IResult> PostRoute([FromServices] ReverseProxyApp reverseProxyApp, [FromBody] RouteConfig routeConfig)
+  public static async ValueTask<IResult> PostRouteAsync([FromServices] ReverseProxyApp reverseProxyApp, [FromBody] RouteInputDto routeInput)
   {
-    await reverseProxyApp.AddRoute(routeConfig);
+    foreach (var routeConfig in routeInput.Routes)
+    {
+      await reverseProxyApp.AddRouteAsync(routeConfig);
+    }
+
     return Results.Ok();
   }
 
   public static IResult GetCluster([FromServices] ReverseProxyApp reverseProxyApp) => Results.Json(reverseProxyApp.GetClusterConfigs());
 
-  public static async ValueTask<IResult> PostCluster([FromServices] ReverseProxyApp reverseProxyApp, [FromBody] ClusterConfig clusterConfig)
+  public static async ValueTask<IResult> PostClusterAsync([FromServices] ReverseProxyApp reverseProxyApp, [FromBody] ClusterInputDto clusterInput)
   {
-    await reverseProxyApp.AddCluster(clusterConfig);
+    foreach (var clusterConfig in clusterInput.Clusters)
+    {
+      await reverseProxyApp.AddClusterAsync(clusterConfig);
+    }
+
     return Results.Ok();
   }
 }

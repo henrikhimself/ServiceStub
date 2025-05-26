@@ -14,9 +14,6 @@ internal sealed class StubApp(IOptions<StubOptions> appOptions)
   /// </summary>
   public string JsonBasePath { get; set; } = appOptions.Value.JsonPath ?? Path.Combine(AppContext.BaseDirectory, "Json");
 
-  /// <summary>
-  /// Gets or sets the name of the currently active collection.
-  /// </summary>
   public string CurrentCollection { get; set; } = StubConstants.DefaultCollection;
 
   public static string CreateRoute(string collectionName, ICollection<string> pathSegments, HttpMethod httpMethod)

@@ -1,6 +1,6 @@
 namespace Hj.ServiceStub.Stub.Models;
 
-public class CollectionDto
+internal sealed class CollectionDto
 {
   public required string Name { get; set; }
 }

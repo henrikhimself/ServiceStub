@@ -38,6 +38,7 @@ internal static class StubApi
     {
       return Results.BadRequest();
     }
+
     stubApp.CurrentCollection = collection.Name;
     return Results.Ok();
   }

@@ -1,0 +1,18 @@
+###
+GET https://localhost:7443/stub/collection/
+
+###
+POST https://localhost:7443/stub/collection/
+Content-Type: application/json
+
+{
+  "name": "_default"
+}
+
+###
+POST https://localhost:7443/stub/collection/
+Content-Type: application/json
+
+{
+  "name": "coll1"
+}

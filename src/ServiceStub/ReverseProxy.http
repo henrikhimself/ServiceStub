@@ -1,0 +1,45 @@
+###
+GET https://localhost:7443/proxy/route/
+
+###
+POST https://localhost:7443/proxy/route/
+Content-Type: application/json
+
+{
+  "Routes": [
+    {
+      "RouteId": "catfact",
+      "ClusterId": "catfact",
+      "Order": 100,
+      "Match": {
+        "Path": "catfact/{**catch-all}"
+      },
+      "Transforms": [
+        {
+          "PathRemovePrefix": "/catfact"
+        }
+      ]
+    }
+  ]
+}
+
+
+###
+GET https://localhost:7443/proxy/cluster/
+
+###
+POST https://localhost:7443/proxy/cluster/
+Content-Type: application/json
+
+{
+  "Clusters": [
+    {
+      "ClusterId": "catfact",
+      "Destinations": {
+        "destination1": {
+          "Address": "https://catfact.ninja/fact"
+        }
+      }
+    }
+  ]
+}

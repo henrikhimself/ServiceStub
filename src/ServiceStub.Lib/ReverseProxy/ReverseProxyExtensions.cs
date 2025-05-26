@@ -7,6 +7,12 @@ namespace Hj.ServiceStub.ReverseProxy;
 
 public static class ReverseProxyExtensions
 {
+  /// <summary>
+  /// Configures reverse proxy services for the application.
+  /// </summary>
+  /// <param name="services">The <see cref="IServiceCollection"/> to which the reverse proxy services will be added.</param>
+  /// <param name="configuration">The <see cref="IConfiguration"/> instance containing an optional reverse proxy configuration.</param>
+  /// <returns>The updated <see cref="IServiceCollection"/> with reverse proxy services configured.</returns>
   public static IServiceCollection ConfigureReverseProxy(this IServiceCollection services, IConfiguration configuration)
   {
     services.AddSingleton<ReverseProxyApp>();
@@ -35,6 +41,11 @@ public static class ReverseProxyExtensions
     return services;
   }
 
+  /// <summary>
+  /// Configures the application to use the reverse proxy.
+  /// </summary>
+  /// <param name="app">The <see cref="WebApplication"/> instance to configure.</param>
+  /// <returns>The configured <see cref="WebApplication"/> instance.</returns>
   public static WebApplication UseReverseProxy(this WebApplication app)
   {
     var loggerMiddleware = app.Services.GetRequiredService<LoggerMiddleware>();
@@ -48,12 +59,24 @@ public static class ReverseProxyExtensions
     return app;
   }
 
+  /// <summary>
+  /// Configures the application to enable the Reverse Proxy API with an optional route prefix.
+  /// </summary>
+  /// <param name="app">The <see cref="WebApplication"/> instance to configure.</param>
+  /// <param name="routePrefix">An optional route prefix for the Reverse Proxy API. If <see langword="null"/> or empty, the API will be mapped to
+  /// the root route.</param>
+  /// <returns>The configured <see cref="WebApplication"/> instance.</returns>
   public static WebApplication UseReverseProxyApi(this WebApplication app, [StringSyntax("Route")] string? routePrefix = null)
   {
     ReverseProxyApi.MapApi(app, routePrefix);
     return app;
   }
 
+  /// <summary>
+  /// Configures the application to handle all unmatched requests with a "blackhole" catch-all route.
+  /// </summary>
+  /// <param name="app">The <see cref="WebApplication"/> instance to configure.</param>
+  /// <returns>The configured <see cref="WebApplication"/> instance, allowing for further chaining of calls.</returns>
   public static WebApplication UseBlackholeCatchAll(this WebApplication app)
   {
     var reverseProxyApp = app.Services.GetRequiredService<ReverseProxyApp>();

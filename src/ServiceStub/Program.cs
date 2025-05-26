@@ -6,7 +6,7 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(formatProvider: CultureInfo.GetCultureInfo("en-US"))
     .CreateLogger();
 
-bool isBuild = Assembly.GetEntryAssembly()?.GetName().Name == "GetDocument.Insider";
+var isBuild = Assembly.GetEntryAssembly()?.GetName().Name == "GetDocument.Insider";
 
 try
 {
@@ -34,7 +34,7 @@ try
       });
     });
 
-    IServiceCollection? services = builder.Services;
+    var services = builder.Services;
     services
       .AddSerilog(lc => lc
         .ReadFrom.Configuration(builder.Configuration)

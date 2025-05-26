@@ -42,9 +42,30 @@ public static class StubExtensions
     return app;
   }
 
+  /// <summary>
+  /// Maps a stub endpoint to the specified path and HTTP method, executing the provided handler function when the
+  /// endpoint is invoked.
+  /// </summary>
+  /// <param name="app">The <see cref="WebApplication"/> to configure.</param>
+  /// <param name="path">The relative URL path where the stub endpoint will be accessible.</param>
+  /// <param name="httpMethod">The HTTP method that the stub endpoint will respond to.</param>
+  /// <param name="fn">A delegate that defines the logic to execute when the stub endpoint is invoked.  The delegate receives the current
+  /// <see cref="HttpContext"/> and a <see cref="CancellationToken"/> for handling the request.</param>
+  /// <returns>The <see cref="WebApplication"/> instance, allowing for method chaining.</returns>
   public static WebApplication MapStub(this WebApplication app, string path, HttpMethod httpMethod, Func<HttpContext, CancellationToken, Task> fn)
     => MapStub(app, StubConstants.DefaultCollection, path, httpMethod, fn);
 
+  /// <summary>
+  /// Maps a stub endpoint to the specified path and HTTP method, executing the provided handler function when the
+  /// endpoint is invoked.
+  /// </summary>
+  /// <param name="app">The <see cref="WebApplication"/> to configure.</param>
+  /// <param name="collectionName">The stub collection that must be active before the mapping is used.</param>
+  /// <param name="path">The relative URL path where the stub endpoint will be accessible.</param>
+  /// <param name="httpMethod">The HTTP method that the stub endpoint will respond to.</param>
+  /// <param name="fn">A delegate that defines the logic to execute when the stub endpoint is invoked.  The delegate receives the current
+  /// <see cref="HttpContext"/> and a <see cref="CancellationToken"/> for handling the request.</param>
+  /// <returns>The <see cref="WebApplication"/> instance, allowing for method chaining.</returns>
   public static WebApplication MapStub(this WebApplication app, string collectionName, string path, HttpMethod httpMethod, Func<HttpContext, CancellationToken, Task> fn)
   {
     var route = StubApp.CreateRoute(collectionName, path, httpMethod);

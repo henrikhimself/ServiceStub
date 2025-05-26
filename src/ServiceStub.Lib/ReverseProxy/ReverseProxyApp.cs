@@ -2,10 +2,10 @@ using Yarp.ReverseProxy.Configuration;
 
 namespace Hj.ServiceStub.ReverseProxy;
 
-internal class ReverseProxyApp(
-  IConfigValidator _configValidator,
-  InMemoryConfigProvider _inMemoryConfigProvider,
-  IEnumerable<IProxyConfigProvider> _proxyConfigProviders)
+internal sealed class ReverseProxyApp(
+  IConfigValidator configValidator,
+  InMemoryConfigProvider inMemoryConfigProvider,
+  IEnumerable<IProxyConfigProvider> proxyConfigProviders)
 {
   private readonly RouteConfig _blackholeRoute = new()
   {
@@ -24,12 +24,12 @@ internal class ReverseProxyApp(
     },
   };
 
-  private readonly List<RouteConfig> _routes = new();
-  private readonly List<ClusterConfig> _clusters = new();
+  private readonly List<RouteConfig> _routes = [];
+  private readonly List<ClusterConfig> _clusters = [];
 
-  public IReadOnlyList<RouteConfig> GetRouteConfigs() => _proxyConfigProviders.SelectMany(x => x.GetConfig().Routes).ToList().AsReadOnly();
+  public IReadOnlyList<RouteConfig> GetRouteConfigs() => proxyConfigProviders.SelectMany(x => x.GetConfig().Routes).ToList().AsReadOnly();
 
-  public IReadOnlyList<ClusterConfig> GetClusterConfigs() => _proxyConfigProviders.SelectMany(x => x.GetConfig().Clusters).ToList().AsReadOnly();
+  public IReadOnlyList<ClusterConfig> GetClusterConfigs() => proxyConfigProviders.SelectMany(x => x.GetConfig().Clusters).ToList().AsReadOnly();
 
   public void AddBlackholeCatchAll()
   {
@@ -38,15 +38,15 @@ internal class ReverseProxyApp(
     Update();
   }
 
-  public async ValueTask AddRoute(RouteConfig route)
+  public async ValueTask AddRouteAsync(RouteConfig route)
   {
-    var validationErrors = await _configValidator.ValidateRouteAsync(route);
+    var validationErrors = await configValidator.ValidateRouteAsync(route);
     if (validationErrors.Count > 0)
     {
       throw new AggregateException("Could not add route.", validationErrors);
     }
 
-    if (_proxyConfigProviders.Any(x => x.GetConfig().Routes.Any(y => y.RouteId == route.RouteId)))
+    if (proxyConfigProviders.Any(x => x.GetConfig().Routes.Any(y => y.RouteId == route.RouteId)))
     {
       throw new InvalidOperationException($"Route with id '{route.RouteId}' already exists.");
     }
@@ -55,15 +55,15 @@ internal class ReverseProxyApp(
     Update();
   }
 
-  public async ValueTask AddCluster(ClusterConfig cluster)
+  public async ValueTask AddClusterAsync(ClusterConfig cluster)
   {
-    var validationErrors = await _configValidator.ValidateClusterAsync(cluster);
+    var validationErrors = await configValidator.ValidateClusterAsync(cluster);
     if (validationErrors.Count > 0)
     {
       throw new AggregateException("Could not add cluser.", validationErrors);
     }
 
-    if (_proxyConfigProviders.Any(x => x.GetConfig().Clusters.Any(y => y.ClusterId == cluster.ClusterId)))
+    if (proxyConfigProviders.Any(x => x.GetConfig().Clusters.Any(y => y.ClusterId == cluster.ClusterId)))
     {
       throw new InvalidOperationException($"Cluster with id '{cluster.ClusterId}' already exists.");
     }
@@ -72,5 +72,5 @@ internal class ReverseProxyApp(
     Update();
   }
 
-  public void Update() => _inMemoryConfigProvider.Update(_routes.AsReadOnly(), _clusters.AsReadOnly());
+  public void Update() => inMemoryConfigProvider.Update(_routes.AsReadOnly(), _clusters.AsReadOnly());
 }
