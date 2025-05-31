@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Reflection;
+using Hj.ServiceStub.Certificate;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -25,14 +26,16 @@ try
   else
   {
     var builder = WebApplication.CreateBuilder(args);
-    builder.WebHost.ConfigureKestrel(options =>
-    {
-      options.ListenAnyIP(7080);
-      options.ListenAnyIP(7443, listenOptions =>
+    builder.WebHost
+      .ConfigureSelfSignedCertificate(builder.Configuration)
+      .ConfigureKestrel(options =>
       {
-        listenOptions.UseHttps();
+        options.ListenAnyIP(7080);
+        options.ListenAnyIP(7443, listenOptions =>
+        {
+          listenOptions.UseHttps();
+        });
       });
-    });
 
     var services = builder.Services;
     services
@@ -63,4 +66,5 @@ catch (Exception ex)
 finally
 {
   await Log.CloseAndFlushAsync();
+  Console.ReadKey();
 }
