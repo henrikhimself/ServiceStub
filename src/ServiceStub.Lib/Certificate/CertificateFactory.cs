@@ -4,7 +4,9 @@ using Hj.ServiceStub.Certificate.Strategy;
 
 namespace Hj.ServiceStub.Certificate;
 
-internal sealed class CertificateFactory(IEnumerable<ICertificateStrategy> strategies)
+internal sealed class CertificateFactory(
+  ILogger<CertificateFactory> logger,
+  IEnumerable<ICertificateStrategy> strategies)
 {
   public X509Certificate2 CreateCa(AsymmetricAlgorithm key, string subjectName)
   {
@@ -12,11 +14,16 @@ internal sealed class CertificateFactory(IEnumerable<ICertificateStrategy> strat
 
     var request = strategy.CreateCertificateRequest(key, new X500DistinguishedName(subjectName));
     request.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 0, true));
-    request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, true));
+    request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign, true));
     request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
 
-    var certificate = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddYears(10));
-    return certificate;
+    var utcNow = DateTimeOffset.UtcNow;
+    var validFrom = utcNow.AddDays(-1);
+    var validTo = utcNow.AddYears(10);
+
+    var ca = request.CreateSelfSigned(validFrom, validTo);
+    logger.LogInformation("Creating CA, subject '{SubjectName}', valid from '{ValidFrom}', valid to '{ValidTo}', thumbprint '{Thumbprint}', serial '{SerialNumber}'", subjectName, validFrom, validTo, ca.Thumbprint, ca.SerialNumber);
+    return ca;
   }
 
   public X509Certificate2 CreateCertificate(AsymmetricAlgorithm key, X509Certificate2 ca, string subjectName, Action<SubjectAlternativeNameBuilder> configureSan)
@@ -29,32 +36,35 @@ internal sealed class CertificateFactory(IEnumerable<ICertificateStrategy> strat
     configureSan(sanBuilder);
     request.CertificateExtensions.Add(sanBuilder.Build());
 
-    request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyEncipherment, true));
-    request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension([new Oid("1.3.6.1.5.5.7.3.1")], true));
     request.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, false));
+    request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension([new Oid("1.3.6.1.5.5.7.3.1")], true));
     request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
 
     var caSignatureGenerator = GetStrategy(ca).GetSignatureGenerator(ca);
+
     var utcNow = DateTimeOffset.UtcNow;
+    var validFrom = utcNow.AddDays(-1);
+    var validTo = utcNow.AddYears(1);
 
     var serialNumber = new byte[16];
     RandomNumberGenerator.Fill(serialNumber);
 
+    logger.LogInformation("Creating certificate, subject '{SubjectName}', CA thumbprint '{Thumbprint}', CA serial '{SerialNumber}'", subjectName, ca.Thumbprint, ca.SerialNumber);
     var certificate = request.Create(
         ca.IssuerName,
         caSignatureGenerator,
-        utcNow.AddDays(-1),
-        utcNow.AddYears(1),
+        validFrom,
+        validTo,
         serialNumber);
 
     var certificateWithKey = strategy.CopyWithPrivateKey(certificate, key);
-    return certificateWithKey;
+
+    var pfxBytes = certificateWithKey.Export(X509ContentType.Pkcs12);
+    var pfx = X509CertificateLoader.LoadPkcs12(pfxBytes, null, keyStorageFlags: X509KeyStorageFlags.Exportable);
+    return pfx;
   }
 
   public AsymmetricAlgorithm CreateKey(string algorithmOid) => GetStrategy(algorithmOid).CreateKey();
-
-  public CertificateRequest CreateCertificateRequest(AsymmetricAlgorithm key, X500DistinguishedName distinguishedName)
-    => GetStrategy(key).CreateCertificateRequest(key, distinguishedName);
 
   public string ExportPrivateKeyPem(X509Certificate2 certificate)
     => GetStrategy(certificate).ExportPrivateKeyPem(certificate);

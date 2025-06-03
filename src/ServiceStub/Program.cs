@@ -26,16 +26,10 @@ try
   else
   {
     var builder = WebApplication.CreateBuilder(args);
-    builder.WebHost
-      .ConfigureSelfSignedCertificate(builder.Configuration)
-      .ConfigureKestrel(options =>
-      {
-        options.ListenAnyIP(7080);
-        options.ListenAnyIP(7443, listenOptions =>
-        {
-          listenOptions.UseHttps();
-        });
-      });
+    builder.WebHost.ConfigureKestrel(options =>
+    {
+      options.UseSelfSignedCertificate();
+    });
 
     var services = builder.Services;
     services
@@ -44,6 +38,7 @@ try
         .Enrich.FromLogContext()
         .WriteTo.Console(formatProvider: CultureInfo.GetCultureInfo("en-US")));
     services
+      .ConfigureSelfSignedCertificate(builder.Configuration)
       .ConfigureStub(builder.Configuration)
       .ConfigureReverseProxy(builder.Configuration);
 
@@ -66,5 +61,4 @@ catch (Exception ex)
 finally
 {
   await Log.CloseAndFlushAsync();
-  Console.ReadKey();
 }

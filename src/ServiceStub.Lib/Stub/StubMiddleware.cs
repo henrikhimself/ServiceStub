@@ -1,6 +1,8 @@
 namespace Hj.ServiceStub.Stub;
 
-internal sealed class StubMiddleware(StubApp stubApp)
+internal sealed class StubMiddleware(
+  ILogger<StubMiddleware> logger,
+  StubApp stubApp)
 {
   public async Task InvokeAsync(HttpContext context, RequestDelegate next)
   {
@@ -22,6 +24,7 @@ internal sealed class StubMiddleware(StubApp stubApp)
       return false;
     }
 
+    logger.LogDebug("Route: '{Url}', using stub API", context.Request.GetDisplayUrl());
     await fn(context, CancellationToken.None);
     return true;
   }
@@ -34,6 +37,7 @@ internal sealed class StubMiddleware(StubApp stubApp)
       return false;
     }
 
+    logger.LogDebug("Route: '{Url}', using stub JSON", context.Request.GetDisplayUrl());
     context.Response.StatusCode = 200;
     context.Response.ContentType = "application/json";
     await context.Response.WriteAsync(await File.ReadAllTextAsync(filePath));
